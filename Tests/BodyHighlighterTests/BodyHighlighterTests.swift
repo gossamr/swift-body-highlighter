@@ -74,7 +74,7 @@ final class BodyHighlighterTests: XCTestCase {
 
     func testBodyPartDataMatchesSection() {
         // 2. Section match check
-        let data = BodyPartData(section: .arms)
+        let data = BodyPartData(group: .arms)
 
         // .arms section contains: .brachioradialis, .biceps, .triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral
         XCTAssertTrue(data.matches(.biceps), "Should match biceps as it is in arms section")
@@ -93,7 +93,7 @@ final class BodyHighlighterTests: XCTestCase {
     // MARK: - Data Integrity Tests
 
     func testMaleFrontUpper() {
-        let parts = BodyData.bodyFrontUpper
+        let parts = BodyData.bodyAnteriorUpper
         XCTAssertFalse(parts.isEmpty, "Male front upper body data should not be empty")
 
         // Verify expected parts exist
@@ -103,23 +103,23 @@ final class BodyHighlighterTests: XCTestCase {
     }
 
     func testMaleFrontLower() {
-        let parts = BodyData.bodyFrontLower
+        let parts = BodyData.bodyAnteriorLower
         XCTAssertFalse(parts.isEmpty, "Male front lower body data should not be empty")
 
-        XCTAssertTrue(parts.contains(.quads), "Should contain quadriceps")
-        XCTAssertTrue(parts.contains(.calves), "Should contain calves")
+        XCTAssertTrue(parts.contains(.rectus_femoris), "Should contain quadriceps")
+        XCTAssertTrue(parts.contains(.tibialis_anterior), "Should contain calves")
     }
 
     func testMaleBackUpper() {
-        let parts = BodyData.bodyBackUpper
+        let parts = BodyData.bodyPosteriorUpper
         XCTAssertFalse(parts.isEmpty, "Male back upper body data should not be empty")
 
         XCTAssertTrue(parts.contains(.trapezius), "Should contain trapezius")
-        XCTAssertTrue(parts.contains(.deltoids), "Should contain deltoids")
+        XCTAssertTrue(parts.contains(.deltoid_rear), "Should contain deltoids")
     }
 
     func testMaleBackLower() {
-        let parts = BodyData.bodyBackLower
+        let parts = BodyData.bodyPosteriorLower
         XCTAssertFalse(parts.isEmpty, "Male back lower body data should not be empty")
 
         XCTAssertTrue(parts.contains(.gluteus_maximus), "Should contain gluteal")
@@ -127,7 +127,7 @@ final class BodyHighlighterTests: XCTestCase {
     }
 
     func testFemaleFrontUpper() {
-        let parts = BodyData.bodyFrontUpper
+        let parts = BodyData.bodyAnteriorUpper
         XCTAssertFalse(parts.isEmpty, "Female front upper body data should not be empty")
 
         XCTAssertTrue(parts.contains(.pectoralis_major), "Should contain chest")
@@ -135,23 +135,23 @@ final class BodyHighlighterTests: XCTestCase {
     }
 
     func testFemaleFrontLower() {
-        let parts = BodyData.bodyFrontLower
+        let parts = BodyData.bodyAnteriorLower
         XCTAssertFalse(parts.isEmpty, "Female front lower body data should not be empty")
 
-        XCTAssertTrue(parts.contains(.quads), "Should contain quadriceps")
-        XCTAssertTrue(parts.contains(.calves), "Should contain calves")
+        XCTAssertTrue(parts.contains(.rectus_femoris), "Should contain quadriceps")
+        XCTAssertTrue(parts.contains(.tibialis_anterior), "Should contain calves")
     }
 
     func testFemaleBackUpper() {
-        let parts = BodyData.bodyBackUpper
+        let parts = BodyData.bodyPosteriorUpper
         XCTAssertFalse(parts.isEmpty, "Female back upper body data should not be empty")
 
         XCTAssertTrue(parts.contains(.trapezius), "Should contain trapezius")
-        XCTAssertTrue(parts.contains(.deltoids), "Should contain deltoids")
+        XCTAssertTrue(parts.contains(.deltoid_rear), "Should contain deltoids")
     }
 
     func testFemaleBackLower() {
-        let parts = BodyData.bodyBackLower
+        let parts = BodyData.bodyPosteriorLower
         XCTAssertFalse(parts.isEmpty, "Female back lower body data should not be empty")
 
         XCTAssertTrue(parts.contains(.gluteus_maximus), "Should contain gluteal")
@@ -174,54 +174,54 @@ final class BodyHighlighterTests: XCTestCase {
 
     func testBodyViewMaleFrontUpper() {
         // Test that view can be initialized with male front configuration
-        let view = BodyView(side: .front, gender: .man)
+        let view = BodyView(side: .anterior, gender: .man)
         XCTAssertNotNil(view, "Should be able to create view for male front")
     }
 
     func testBodyViewMaleFrontLower() {
         // View combines upper+lower, but we verify data exists
-        let parts = BodyData.bodyFrontLower
+        let parts = BodyData.bodyAnteriorLower
         XCTAssertFalse(parts.isEmpty, "Male front lower should have data for rendering")
     }
 
     func testBodyViewMaleBackUpper() {
-        let view = BodyView(side: .back, gender: .man)
+        let view = BodyView(side: .posterior, gender: .man)
         XCTAssertNotNil(view, "Should be able to create view for male back")
     }
 
     func testBodyViewMaleBackLower() {
-        let parts = BodyData.bodyBackLower
+        let parts = BodyData.bodyPosteriorLower
         XCTAssertFalse(parts.isEmpty, "Male back lower should have data for rendering")
     }
 
     func testBodyViewFemaleFrontUpper() {
-        let view = BodyView(side: .front, gender: .woman)
+        let view = BodyView(side: .anterior, gender: .woman)
         XCTAssertNotNil(view, "Should be able to create view for female front")
     }
 
     func testBodyViewFemaleFrontLower() {
-        let parts = BodyData.bodyFrontLower
+        let parts = BodyData.bodyAnteriorLower
         XCTAssertFalse(parts.isEmpty, "Female front lower should have data for rendering")
     }
 
     func testBodyViewFemaleBackUpper() {
-        let view = BodyView(side: .back, gender: .woman)
+        let view = BodyView(side: .posterior, gender: .woman)
         XCTAssertNotNil(view, "Should be able to create view for female back")
     }
 
     func testBodyViewFemaleBackLower() {
-        let parts = BodyData.bodyBackLower
+        let parts = BodyData.bodyPosteriorLower
         XCTAssertFalse(parts.isEmpty, "Female back lower should have data for rendering")
     }
 
     func testBodyViewCombined() {
         // Test that view correctly combines upper and lower parts
-        let view = BodyView(side: .front, gender: .man)
+        let view = BodyView(side: .anterior, gender: .man)
         XCTAssertNotNil(view)
 
         // Verify the combined data would include both upper and lower
-        let upperParts = BodyData.bodyFrontUpper
-        let lowerParts = BodyData.bodyFrontLower
+        let upperParts = BodyData.bodyAnteriorUpper
+        let lowerParts = BodyData.bodyAnteriorLower
         XCTAssertFalse(upperParts.isEmpty)
         XCTAssertFalse(lowerParts.isEmpty)
     }
@@ -233,14 +233,14 @@ final class BodyHighlighterTests: XCTestCase {
             BodyPartData(slug: .rectus_abdominus, color: .blue)
         ]
 
-        let view = BodyView(data: customData, side: .front, gender: .man)
+        let view = BodyView(data: customData, side: .anterior, gender: .man)
         XCTAssertNotNil(view)
     }
 
     func testBodyViewWithDisabledParts() {
         let disabledParts: Set<BodyPartSlug> = [.pectoralis_major, .rectus_abdominus]
         let view = BodyView(
-            side: .front,
+            side: .anterior,
             gender: .man,
             disabledParts: disabledParts
         )
@@ -250,7 +250,7 @@ final class BodyHighlighterTests: XCTestCase {
     func testBodyViewWithHiddenParts() {
         let hiddenParts: Set<BodyPartSlug> = [.biceps, .triceps_brachii_long]
         let view = BodyView(
-            side: .front,
+            side: .anterior,
             gender: .man,
             hiddenParts: hiddenParts
         )
@@ -260,7 +260,7 @@ final class BodyHighlighterTests: XCTestCase {
     func testBodyViewWithCustomColors() {
         let customColors = [Color.red, Color.blue, Color.green]
         let view = BodyView(
-            side: .front,
+            side: .anterior,
             gender: .man,
             colors: customColors
         )
@@ -269,7 +269,7 @@ final class BodyHighlighterTests: XCTestCase {
 
     func testBodyViewWithScale() {
         let view = BodyView(
-            side: .front,
+            side: .anterior,
             gender: .man,
             scale: 2.0
         )
@@ -279,32 +279,32 @@ final class BodyHighlighterTests: XCTestCase {
     // MARK: - BodySection Tests
 
     func testBodyViewUpperOnly() {
-        let view = BodyView(side: .front, gender: .man, section: .upper)
+        let view = BodyView(side: .anterior, gender: .man, section: .upper)
         XCTAssertNotNil(view, "Should be able to create view with upper section only")
     }
 
     func testBodyViewLowerOnly() {
-        let view = BodyView(side: .front, gender: .man, section: .lower)
+        let view = BodyView(side: .anterior, gender: .man, section: .lower)
         XCTAssertNotNil(view, "Should be able to create view with lower section only")
     }
 
     func testBodyViewFullSection() {
-        let view = BodyView(side: .front, gender: .man, section: .full)
+        let view = BodyView(side: .anterior, gender: .man, section: .full)
         XCTAssertNotNil(view, "Should be able to create view with full section")
     }
 
     func testBodyViewDefaultSectionIsFull() {
         // When no section is specified, it should default to .full
-        let view = BodyView(side: .front, gender: .man)
+        let view = BodyView(side: .anterior, gender: .man)
         XCTAssertNotNil(view)
         // Implicitly tests backward compatibility
     }
 
     func testAllSectionCombinationsMaleFront() {
         // Test all 3 sections for male front
-        let upperView = BodyView(side: .front, gender: .man, section: .upper)
-        let lowerView = BodyView(side: .front, gender: .man, section: .lower)
-        let fullView = BodyView(side: .front, gender: .man, section: .full)
+        let upperView = BodyView(side: .anterior, gender: .man, section: .upper)
+        let lowerView = BodyView(side: .anterior, gender: .man, section: .lower)
+        let fullView = BodyView(side: .anterior, gender: .man, section: .full)
 
         XCTAssertNotNil(upperView)
         XCTAssertNotNil(lowerView)
@@ -312,9 +312,9 @@ final class BodyHighlighterTests: XCTestCase {
     }
 
     func testAllSectionCombinationsMaleBack() {
-        let upperView = BodyView(side: .back, gender: .man, section: .upper)
-        let lowerView = BodyView(side: .back, gender: .man, section: .lower)
-        let fullView = BodyView(side: .back, gender: .man, section: .full)
+        let upperView = BodyView(side: .posterior, gender: .man, section: .upper)
+        let lowerView = BodyView(side: .posterior, gender: .man, section: .lower)
+        let fullView = BodyView(side: .posterior, gender: .man, section: .full)
 
         XCTAssertNotNil(upperView)
         XCTAssertNotNil(lowerView)
@@ -322,9 +322,9 @@ final class BodyHighlighterTests: XCTestCase {
     }
 
     func testAllSectionCombinationsFemaleFront() {
-        let upperView = BodyView(side: .front, gender: .woman, section: .upper)
-        let lowerView = BodyView(side: .front, gender: .woman, section: .lower)
-        let fullView = BodyView(side: .front, gender: .woman, section: .full)
+        let upperView = BodyView(side: .anterior, gender: .woman, section: .upper)
+        let lowerView = BodyView(side: .anterior, gender: .woman, section: .lower)
+        let fullView = BodyView(side: .anterior, gender: .woman, section: .full)
 
         XCTAssertNotNil(upperView)
         XCTAssertNotNil(lowerView)
@@ -332,9 +332,9 @@ final class BodyHighlighterTests: XCTestCase {
     }
 
     func testAllSectionCombinationsFemaleBack() {
-        let upperView = BodyView(side: .back, gender: .woman, section: .upper)
-        let lowerView = BodyView(side: .back, gender: .woman, section: .lower)
-        let fullView = BodyView(side: .back, gender: .woman, section: .full)
+        let upperView = BodyView(side: .posterior, gender: .woman, section: .upper)
+        let lowerView = BodyView(side: .posterior, gender: .woman, section: .lower)
+        let fullView = BodyView(side: .posterior, gender: .woman, section: .full)
 
         XCTAssertNotNil(upperView)
         XCTAssertNotNil(lowerView)

@@ -233,7 +233,7 @@ public let BodyPartGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
     .adductors: [.pectineus, .adductor_longus, .adductor_magnus, .adductor_brevis, .gracilis],
     .quads: [.rectus_femoris, .vastus_lateralis, .vastus_medialis, .vastus_intermedius],
     .hamstrings: [.semimembranosus, .semitendinosus, .biceps_femoris],
-    .calves: [.gastrocnemius_lateral, .gastrocnemius_medial, .soleus]
+    .calves: [.gastrocnemius_lateral, .gastrocnemius_medial, .soleus, .tibialis_anterior, .fibularis]
 ]
 
 // MARK: - Color Extension

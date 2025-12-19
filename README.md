@@ -151,6 +151,12 @@ The package is structured as follows:
 
 Inspired by [react-native-body-highlighter](https://github.com/HichamELBSI/react-native-body-highlighter). All SVG paths used herein are copyright its author.
 
+## Disclaimer
+
+The body images and mappings provided in this package are artistic representations and contain known anatomical inaccuracies. Body part identifiers (slugs) are mapped to image regions on a best-effort basis. These maps are intended for illustrative purposes within user interfaces and must not be used as a precise medical or anatomical reference.
+
+The anatomical SVG illustrations are currently limited by the licensable artistic resources available. We warmly welcome contributions of more accurate SVG paths. With more detailed path data, we can expand our mappings to include the full set of anatomical slugs, and even grow the set of slugs to include more finely grained anatomical components. If you are interested in helping improve the accuracy of this package, please feel free to open a Pull Request.
+
 ## License
 
 MIT

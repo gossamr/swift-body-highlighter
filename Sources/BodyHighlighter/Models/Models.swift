@@ -71,14 +71,16 @@ public struct BodyPartData: Identifiable, Equatable, Sendable {
         self.override = override
     }
 
-    public func matches(_ targetSlug: BodyPartSlug) -> Bool {
+    public func matches(_ targetSlug: BodyPartSlug, side targetSide: LateralSide? = nil) -> Bool {
+        let sideMatches = side == nil || side == targetSide
+        guard sideMatches else { return false }
+
         if let slug {
             return slug == targetSlug
         }
 
-        if let group,
-            let slugs = BodyPartGroups[group] {
-            return slugs.contains(targetSlug)
+        if let group {
+            return targetSlug.groups().contains(group)
         }
 
         return false
@@ -98,28 +100,28 @@ public struct BodyPartData: Identifiable, Equatable, Sendable {
 }
 
 // MARK: - Enums
-public enum BodySide: String, Sendable, CaseIterable {
+public enum BodySide: String, Sendable, CaseIterable, Equatable {
     case anterior
     case posterior
 }
 
-public enum Gender: String, Sendable, CaseIterable {
+public enum Gender: String, Sendable, CaseIterable, Equatable {
     case man
     case woman
 }
 
-public enum LateralSide: String, Sendable, CaseIterable {
+public enum LateralSide: String, Sendable, CaseIterable, Equatable {
     case left
     case right
 }
 
-public enum BodySection: String, Sendable, CaseIterable {
+public enum BodySection: String, Sendable, CaseIterable, Equatable {
     case upper
     case lower
     case full // both upper and lower
 }
 
-public enum BodyPartSlug: String, Sendable, CaseIterable {
+public enum BodyPartSlug: String, Sendable, CaseIterable, Equatable {
     // skeletal & other non-muscles
     case hair, head, neck, hands, ankles, knees, feet
 
@@ -160,8 +162,10 @@ public enum BodyPartSlug: String, Sendable, CaseIterable {
          flexor_carpi_ulnaris, flexor_digitorum_superficialis, flexor_digitorum_profundus, flexor_policis_longus, // forearm front
          extensor_digiti_minimi, extensor_policis // forearm rear
 
-    public func group() -> BodyPartGroup? {
-        return BodyPartGroups.first(where: { $1.contains(self) })?.key
+    public func groups() -> [BodyPartGroup] {
+        return BodyPartGroups.keys.filter {
+            $0.slugs().contains(self)
+        }
     }
 
     public func section() -> (BodySide, BodySection)? {
@@ -193,7 +197,7 @@ public enum BodyPartSlug: String, Sendable, CaseIterable {
     }
 }
 
-public enum BodyPartGroup: String, Sendable, CaseIterable {
+public enum BodyPartGroup: String, Sendable, CaseIterable, Equatable {
     case skeletal_etc
 
     // both

@@ -4,9 +4,6 @@
 //
 //  Created by gossamr on 12/16/25.
 //
-//  All SVG paths used and distributed under MIT License by:
-//  Copyright (c) 2022 ELABBASSI Hicham
-//  https://github.com/HichamELBSI/react-native-body-highlighter
 
 import SwiftUI
 
@@ -25,7 +22,19 @@ public struct BodyView: View {
     private let defaultFill: Color
     private let defaultStroke: Color
     private let defaultStrokeWidth: CGFloat
+    private let enableZoom: Bool
+    private let enablePan: Bool
     private let onBodyPartPress: ((BodyPartSlug, LateralSide?) -> Void)?
+
+    // MARK: - State
+    @State private var interactiveScale: CGFloat = 1.0
+    @GestureState private var gestureScale: CGFloat = 1.0
+
+    @State private var dragOffset: CGSize = .zero
+    @GestureState private var gestureOffset: CGSize = .zero
+
+    // Cache for ViewBox calculation
+    private static var viewBoxCache: [String: CGRect] = [:]
 
     // MARK: - Initializer
     public init(
@@ -42,6 +51,8 @@ public struct BodyView: View {
         defaultFill: Color = Color(hex: "#3f3f3f"),
         defaultStroke: Color = .clear,
         defaultStrokeWidth: CGFloat = 0,
+        enableZoom: Bool = false,
+        enablePan: Bool = false,
         onBodyPartPress: ((BodyPartSlug, LateralSide?) -> Void)? = nil
     ) {
         self.data = data
@@ -57,7 +68,32 @@ public struct BodyView: View {
         self.defaultFill = defaultFill
         self.defaultStroke = defaultStroke
         self.defaultStrokeWidth = defaultStrokeWidth
+        self.enableZoom = enableZoom
+        self.enablePan = enablePan
         self.onBodyPartPress = onBodyPartPress
+
+        _interactiveScale = State(initialValue: scale)
+    }
+
+    private var zoomGesture: some Gesture {
+        MagnificationGesture()
+            .updating($gestureScale) { value, state, _ in
+                state = value
+            }
+            .onEnded { value in
+                interactiveScale *= value
+            }
+    }
+
+    private var panGesture: some Gesture {
+        DragGesture()
+            .updating($gestureOffset) { value, state, _ in
+                state = value.translation
+            }
+            .onEnded { value in
+                dragOffset.width += value.translation.width
+                dragOffset.height += value.translation.height
+            }
     }
 
     // MARK: - Body
@@ -67,8 +103,10 @@ public struct BodyView: View {
 
         GeometryReader { geometry in
             Canvas { context, size in
+                let currentScale = (enableZoom ? interactiveScale : scale) * gestureScale
+
                 // Scale to fit
-                let scaleFactor = min(size.width / viewBox.width, size.height / viewBox.height) * scale
+                let scaleFactor = min(size.width / viewBox.width, size.height / viewBox.height) * currentScale
 
                 // Calculate centering offsets
                 let scaledWidth = viewBox.width * scaleFactor
@@ -76,8 +114,13 @@ public struct BodyView: View {
                 let xOffset = (size.width - scaledWidth) / 2
                 let yOffset = (size.height - scaledHeight) / 2
 
+                let totalOffset = enablePan ? CGSize(
+                    width: dragOffset.width + gestureOffset.width,
+                    height: dragOffset.height + gestureOffset.height
+                ) : .zero
+
                 // Apply transformations
-                context.translateBy(x: xOffset, y: yOffset)
+                context.translateBy(x: xOffset + totalOffset.width, y: yOffset + totalOffset.height)
                 context.scaleBy(x: scaleFactor, y: scaleFactor)
                 context.translateBy(x: -viewBox.minX, y: -viewBox.minY)
 
@@ -93,7 +136,7 @@ public struct BodyView: View {
 
                 // Draw body parts
                 for bodyPart in bodyParts {
-                    let userData = getUserData(for: bodyPart.slug)
+                    let commonData = getUserData(for: bodyPart.slug)
 
                     // Draw common paths
                     for path in bodyPart.paths.common {
@@ -101,31 +144,31 @@ public struct BodyView: View {
                             context: &context,
                             path: path,
                             bodyPart: bodyPart,
-                            userData: userData,
+                            userData: commonData,
                             side: nil
                         )
                     }
 
                     // Draw left paths
+                    let leftData = getUserData(for: bodyPart.slug, side: .left) ?? commonData
                     for path in bodyPart.paths.left {
-                        let shouldDim = userData?.side == LateralSide.right
                         drawPath(
                             context: &context,
                             path: path,
                             bodyPart: bodyPart,
-                            userData: shouldDim ? nil : userData,
+                            userData: leftData,
                             side: .left
                         )
                     }
 
                     // Draw right paths
+                    let rightData = getUserData(for: bodyPart.slug, side: .right) ?? commonData
                     for path in bodyPart.paths.right {
-                        let shouldDim = userData?.side == LateralSide.left
                         drawPath(
                             context: &context,
                             path: path,
                             bodyPart: bodyPart,
-                            userData: shouldDim ? nil : userData,
+                            userData: rightData,
                             side: .right
                         )
                     }
@@ -135,16 +178,29 @@ public struct BodyView: View {
             .onTapGesture(count: 1, coordinateSpace: .local) { location in
                 handleTap(at: location, viewSize: geometry.size, viewBox: viewBox)
             }
+            .gesture(
+                enableZoom && enablePan ? AnyGesture(SimultaneousGesture(zoomGesture, panGesture).map { _ in () }) :
+                enableZoom ? AnyGesture(zoomGesture.map { _ in () }) :
+                enablePan ? AnyGesture(panGesture.map { _ in () }) :
+                nil
+            )
+            .onChange(of: scale) { newValue in
+                if !enableZoom {
+                    interactiveScale = newValue
+                }
+            }
         }
     }
 
     private func handleTap(at location: CGPoint, viewSize: CGSize, viewBox: CGRect) {
         guard let onBodyPartPress else { return }
 
+        let currentScale = (enableZoom ? interactiveScale : scale) * gestureScale
+
         // 1. Convert tap location to SVG coordinates
 
         // Calculate the scale factor used in drawing (using current viewSize)
-        let scaleFactor = min(viewSize.width / viewBox.width, viewSize.height / viewBox.height) * scale
+        let scaleFactor = min(viewSize.width / viewBox.width, viewSize.height / viewBox.height) * currentScale
 
         // Calculate centering offsets (same as in drawing)
         let scaledWidth = viewBox.width * scaleFactor
@@ -153,44 +209,45 @@ public struct BodyView: View {
         let yOffset = (viewSize.height - scaledHeight) / 2
 
         // Convert to SVG space:
-        // P = ((Q - M) / s) + V_min
-        // where Q = location, M = offset, s = scaleFactor, V_min = viewBox.min
+        // P = ((Q - M - T) / s) + V_min
+        // where Q = location, M = centering offset, T = pan offset, s = scaleFactor, V_min = viewBox.min
 
-        let svgX = ((location.x - xOffset) / scaleFactor) + viewBox.minX
-        let svgY = ((location.y - yOffset) / scaleFactor) + viewBox.minY
+        let totalOffset = enablePan ? CGSize(
+            width: dragOffset.width + gestureOffset.width,
+            height: dragOffset.height + gestureOffset.height
+        ) : .zero
+
+        let svgX = ((location.x - xOffset - totalOffset.width) / scaleFactor) + viewBox.minX
+        let svgY = ((location.y - yOffset - totalOffset.height) / scaleFactor) + viewBox.minY
         let svgPoint = CGPoint(x: svgX, y: svgY)
 
         // 2. Find tapped body part
         let bodyParts = getBodyParts()
 
         for bodyPart in bodyParts {
-            // Check Common Paths
-            for path in bodyPart.paths.common {
-                if hitTest(point: svgPoint, path: path) {
-                    if !disabledParts.contains(bodyPart.slug) {
+            if !disabledParts.contains(bodyPart.slug) {
+                // Check Common Paths
+                for path in bodyPart.paths.common {
+                    if hitTest(point: svgPoint, path: path) {
                         onBodyPartPress(bodyPart.slug, nil)
+                        return
                     }
-                    return
                 }
-            }
 
-            // Check Left Paths
-            for path in bodyPart.paths.left {
-                if hitTest(point: svgPoint, path: path) {
-                    if !disabledParts.contains(bodyPart.slug) {
+                // Check Left Paths
+                for path in bodyPart.paths.left {
+                    if hitTest(point: svgPoint, path: path) {
                         onBodyPartPress(bodyPart.slug, .left)
+                        return
                     }
-                    return
                 }
-            }
 
-            // Check Right Paths
-            for path in bodyPart.paths.right {
-                if hitTest(point: svgPoint, path: path) {
-                    if !disabledParts.contains(bodyPart.slug) {
+                // Check Right Paths
+                for path in bodyPart.paths.right {
+                    if hitTest(point: svgPoint, path: path) {
                         onBodyPartPress(bodyPart.slug, .right)
+                        return
                     }
-                    return
                 }
             }
         }
@@ -295,12 +352,19 @@ public struct BodyView: View {
     }
 
     private func getViewBox() -> CGRect {
+        let key = "\(gender.rawValue)-\(side.rawValue)-\(section.rawValue)"
+        if let cached = Self.viewBoxCache[key] {
+            return cached
+        }
+
         let bodyParts = getBodyParts()
-        return calculateBoundingBox(for: bodyParts)
+        let result = calculateBoundingBox(for: bodyParts)
+        Self.viewBoxCache[key] = result
+        return result
     }
 
-    private func getUserData(for slug: BodyPartSlug) -> BodyPartData? {
-        data.first { $0.matches(slug) }
+    private func getUserData(for slug: BodyPartSlug, side: LateralSide? = nil) -> BodyPartData? {
+        data.first { $0.matches(slug, side: side) }
     }
 
     private func drawPath(

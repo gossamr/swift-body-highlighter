@@ -1,3 +1,10 @@
+//
+//  BodyHighlighterTests.swift
+//  BodyHighlighterTests
+//
+//  Created by gossamr on 12/16/25.
+//
+
 import XCTest
 import SwiftUI
 @testable import BodyHighlighter

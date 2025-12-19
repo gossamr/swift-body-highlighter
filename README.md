@@ -36,7 +36,7 @@ import BodyHighlighter
 struct ContentView: View {
     var body: some View {
         BodyView(
-            side: .front,
+            side: .anterior,
             gender: .man,
             scale: 1.2
         )
@@ -97,7 +97,7 @@ struct ContentView: View {
     var body: some View {
         BodyView(
             data: bodyData,
-            side: .front,
+            side: .anterior,
             gender: .man,
             colors: [.yellow, .orange, .red], // Intensity gradient
             onBodyPartPress: { slug, side in
@@ -113,10 +113,12 @@ struct ContentView: View {
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `data` | `[BodyPartData]` | `[]` | Array of data to highlight parts. |
-| `side` | `BodySide` | `.front` | Front or back view. |
+| `side` | `BodySide` | `.anterior` | Anterior or posterior view. |
 | `gender` | `Gender` | `.woman` | Man or woman model. |
 | `section` | `BodySection` | `.full` | Show `.upper`, `.lower`, or `.full` body. |
 | `scale` | `CGFloat` | `1.0` | Scale factor for zooming. |
+| `enableZoom` | `Bool` | `false` | Enable zooming gesture. |
+| `enablePan` | `Bool` | `false` | Enable panning gesture. |
 | `border` | `Color?` | `#dfdfdf` | Color of the body outline. Pass `nil` to hide. |
 | `colors` | `[Color]` | `[...]` | Array of colors for intensity mapping `(1...n)`. |
 | `disabledParts` | `Set<BodyPartSlug>` | `[.hair, ...]` | Parts that are visible but not interactive. |

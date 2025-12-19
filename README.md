@@ -15,6 +15,14 @@ A Swift Package for rendering interactive body maps in SwiftUI, ported from the 
 - Interactive tap handlers
 - Hidden and disabled body parts
 
+
+<div style="text-align:center;width:100%;">
+  <img src="./docs/screenshots/exampleAnteriorWoman.png" width="150" alt="body-highlighter" />
+  <img src="./docs/screenshots/examplePosteriorWoman.png" width="150" alt="body-highlighter" />
+  <img src="./docs/screenshots/exampleAnteriorMan.png" width="150" alt="body-highlighter" />
+  <img src="./docs/screenshots/examplePosteriorMan.png" width="150" alt="body-highlighter" />
+</div>
+
 ## Installation
 
 Add this package to your project using Swift Package Manager:

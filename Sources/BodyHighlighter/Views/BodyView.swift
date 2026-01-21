@@ -11,7 +11,7 @@ public struct BodyView: View {
     // MARK: - Properties
     private let data: [BodyPartData]
     private let side: BodySide
-    private let gender: Gender
+    private let gender: BodyGender
     private let section: BodySection
     private let colors: [Color]
     private let scale: CGFloat
@@ -40,7 +40,7 @@ public struct BodyView: View {
     public init(
         data: [BodyPartData] = [],
         side: BodySide = .anterior,
-        gender: Gender = .woman,
+        gender: BodyGender = .woman,
         section: BodySection = .full,
         colors: [Color] = [Color(hex: "#0984e3"), Color(hex: "#74b9ff")],
         scale: CGFloat = 1.0,

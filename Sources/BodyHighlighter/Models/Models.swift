@@ -105,7 +105,7 @@ public enum BodySide: String, Sendable, CaseIterable, Equatable {
     case posterior
 }
 
-public enum BodyGender: String, Sendable, CaseIterable, Equatable {
+public enum BodyGender: String, Sendable, CaseIterable, Equatable, Codable {
     case man
     case woman
 }
@@ -121,52 +121,60 @@ public enum BodySection: String, Sendable, CaseIterable, Equatable {
     case full // both upper and lower
 }
 
-public enum BodyPartSlug: String, Sendable, CaseIterable, Equatable, BodyPartStringConvertible {
+public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, BodyPartStringConvertible {
     // skeletal & other non-muscles
     case hair, head, neck, hands, ankles, knees, feet
 
     // anterior and posterior
-    case trapezius_upper = "traps (upper)", vastus_lateralis
+    case trapezius_upper, vastus_lateralis
 
     // anterior-only
-    case biceps, brachialis, // arms
+    case biceps_brachii, brachialis, // arms
          sternocleidomastoid, // neck
          pectoralis_major, serratus_anterior, // chest
          brachioradialis, flexor_carpi_radialis, palmaris_longus, // forearms
-         rectus_abdominus, obliques, // abs
+         rectus_abdominis, obliques, // abs
          pectineus, sartorius, adductor_longus, // adductors
          rectus_femoris, vastus_medialis, // quads
          popliteus, // knee, technically in the back, but mapped in front/below knee
          tibialis_anterior, fibularis // calves
 
     // posterior-only
-    case deltoid_rear = "delts (rear)",
-         infraspinatus, teres_major, trapezius = "traps", // upper back
+    case deltoid_posterior,
+         infraspinatus, teres_major, trapezius, // upper back
          triceps_brachii_long, triceps_brachii_lateral, triceps_brachii_medial, // triceps
          anconeus, extensor_carpi_ulnaris, extensor_digitorum, extensor_carpi_radialis, // forearms
-         latissimus_dorsi = "lats", erector_spinae, serratus_posterior_inferior, // lower back
+         latissimus_dorsi, erector_spinae, serratus_posterior_inferior, // lower back
          gluteus_maximus, gluteus_medius, // glutes
          adductor_magnus, // adductor
          semimembranosus, semitendinosus, biceps_femoris, // hamstring
          gastrocnemius_lateral, gastrocnemius_medial, soleus // calves
 
     // woman-only
-    case pronator_teres, deltoid_side = "delts (side)", deltoid_front = "delts (front)"
+    case pronator_teres, deltoid_lateral, deltoid_anterior
 
     // man-only, anterior-only
-    case deltoids = "delts"
+    case deltoids
 
     // unmapped
     case pectoralis_minor, quadratus_lumborum, iliopsoas,
+         transverse_abdominis, // inner core
          rhomboid_major, rhomboid_minor,  // upper back
          supraspinatus, teres_minor, subscapularis, // rotator cuff
          gracilis, adductor_brevis, vastus_intermedius, gluteus_minimus, tibialis_posterior, // legs
          flexor_carpi_ulnaris, flexor_digitorum_superficialis, flexor_digitorum_profundus, flexor_policis_longus, // forearm front
-         extensor_digiti_minimi, extensor_policis // forearm rear
+         extensor_digiti_minimi, extensor_policis, // forearm rear
+         tensor_fasciae_latae // hip
 
     public func groups() -> [BodyPartGroup] {
-        return BodyPartGroups.keys.filter {
+        return BodyPartGroup.allCases.filter {
             $0.slugs().contains(self)
+        }
+    }
+
+    public func uniqueGroups() -> [BodyPartGroup] {
+        return BodyPartGroup.uniqueGroups().filter {
+            $0.uniqueSlugs().contains(self)
         }
     }
 
@@ -201,54 +209,151 @@ public enum BodyPartSlug: String, Sendable, CaseIterable, Equatable, BodyPartStr
     public func slugs() -> Set<BodyPartSlug> { [self] }
 }
 
-public enum BodyPartGroup: String, Sendable, CaseIterable, Equatable, BodyPartStringConvertible {
+public enum BodyPartGroup: String, Sendable, Codable, CaseIterable, Equatable, BodyPartStringConvertible {
     case skeletal_etc = "skeletal+"
 
     // both
-    case neck, trapezius = "traps", deltoids = "delts", arms, triceps, forearms, adductors, calves, legs, core, shoulders
+    case neck, trapezius = "traps", deltoids = "delts", arms, triceps, forearms, adductors, calves
+    case core, shoulders // workout split and in the highlight body anterior and posterior
 
     // anterior-only
-    case quads, chest, chest_upper = "chest (upper)", chest_mid = "chest (mid)", abs
+    case quads, chest, abs, biceps, hip_flexors
 
     // posterior-only
-    case back_upper = "back (upper)", back_lower = "back (lower)", glutes, hamstrings, back
+    case back_upper, back_lower, glutes, hamstrings, back
 
     // unmapped
     case rhomboids
+
+    // workout splits
+    case upper, lower, push, pull, legs
 
     public func slugs() -> Set<BodyPartSlug> {
         return BodyPartGroups[self] ?? []
     }
 
+    public func uniqueSlugs() -> Set<BodyPartSlug> {
+        return BodyPartUniqueGroups[self] ?? []
+    }
+
     public static func muscles() -> Set<BodyPartSlug> {
         return Set(BodyPartSlug.allCases).subtracting(BodyPartGroups[BodyPartGroup.skeletal_etc]!)
     }
+
+    // non-overlapping muscle groups
+    public static func uniqueGroups() -> Set<BodyPartGroup> {
+        return Set(BodyPartUniqueGroups.keys)
+    }
 }
 
+// Functional anatomically correct mappings
 public let BodyPartGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
     .skeletal_etc: [.hair, .head, .neck, .hands, .ankles, .knees, .feet],
-    .neck: [.sternocleidomastoid],
-    .trapezius: [.trapezius, .trapezius_upper],
-    .deltoids: [.deltoid_rear, .deltoid_side, .deltoid_front, .deltoids],
-    .shoulders: [.deltoid_rear, .deltoid_side, .deltoid_front, .deltoids, .infraspinatus, .supraspinatus, .teres_major, .teres_minor, .subscapularis],
-    .rhomboids: [.rhomboid_major, .rhomboid_minor],
-    .arms: [.brachialis, .biceps, .triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral],
-    .triceps: [.triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral],
-    .forearms: [.brachioradialis, .flexor_digitorum_superficialis, .flexor_digitorum_profundus, .flexor_policis_longus, .pronator_teres, .flexor_carpi_radialis, .palmaris_longus, .flexor_carpi_ulnaris, .extensor_policis, .extensor_digitorum, .extensor_carpi_ulnaris, .extensor_digiti_minimi, .extensor_carpi_radialis, .anconeus],
-    .abs: [.rectus_abdominus, .obliques],
-    .core: [.rectus_abdominus, .obliques, .erector_spinae, .quadratus_lumborum],
-    .back_upper: [.latissimus_dorsi, .trapezius, .teres_major, .infraspinatus],
-    .back_lower: [.erector_spinae, .serratus_posterior_inferior],
-    .back: [.latissimus_dorsi, .trapezius, .teres_major, .infraspinatus, .erector_spinae, .serratus_posterior_inferior],
+    .neck: [.sternocleidomastoid, .trapezius_upper],
+    .shoulders: [.deltoid_posterior, .deltoid_lateral, .deltoid_anterior, .deltoids,
+                 .infraspinatus, .supraspinatus, .teres_minor, .subscapularis, .teres_major],
     .chest: [.pectoralis_major, .pectoralis_minor, .serratus_anterior],
-    .chest_upper: [.pectoralis_major, .pectoralis_minor, .serratus_anterior],
-    .chest_mid: [.pectoralis_major, .pectoralis_minor, .serratus_anterior],
-    .glutes: [.gluteus_medius, .gluteus_maximus, .gluteus_minimus],
-    .adductors: [.sartorius, .pectineus, .adductor_longus, .adductor_magnus, .adductor_brevis, .gracilis],
+    .back_upper: [.latissimus_dorsi, .trapezius, .trapezius_upper,
+                  .teres_major, .rhomboid_major, .rhomboid_minor,
+                  .infraspinatus, .teres_minor, .supraspinatus, .subscapularis,
+                  .serratus_anterior],
+    .back_lower: [.erector_spinae, .serratus_posterior_inferior, .quadratus_lumborum],
+    .back: [.latissimus_dorsi, .trapezius, .trapezius_upper, .teres_major,
+            .rhomboid_major, .rhomboid_minor, .infraspinatus, .teres_minor,
+            .supraspinatus, .subscapularis, .erector_spinae,
+            .serratus_posterior_inferior, .quadratus_lumborum, .serratus_anterior],
+    .core: [.rectus_abdominis, .obliques, .transverse_abdominis,
+            .erector_spinae, .quadratus_lumborum, .iliopsoas],
+    .abs: [.rectus_abdominis, .obliques, .transverse_abdominis],
+    .biceps: [.biceps_brachii, .brachialis, .brachioradialis],
+    .triceps: [.triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral, .anconeus],
+    .forearms: [.brachioradialis, .flexor_carpi_radialis, .palmaris_longus,
+                .flexor_carpi_ulnaris, .flexor_digitorum_superficialis,
+                .flexor_digitorum_profundus, .flexor_policis_longus, .pronator_teres,
+                .extensor_carpi_ulnaris, .extensor_digitorum, .extensor_carpi_radialis,
+                .extensor_digiti_minimi, .extensor_policis, .anconeus],
+    .hip_flexors: [.iliopsoas, .tensor_fasciae_latae, .sartorius,
+                   .rectus_femoris, .pectineus],
     .quads: [.rectus_femoris, .vastus_lateralis, .vastus_medialis, .vastus_intermedius],
-    .hamstrings: [.semimembranosus, .semitendinosus, .biceps_femoris],
-    .calves: [.gastrocnemius_lateral, .gastrocnemius_medial, .soleus, .tibialis_anterior, .fibularis],
-    .legs: [.sartorius, .pectineus, .adductor_longus, .adductor_magnus, .adductor_brevis, .gracilis, .rectus_femoris, .vastus_lateralis, .vastus_medialis, .vastus_intermedius, .semimembranosus, .semitendinosus, .biceps_femoris, .gastrocnemius_lateral, .gastrocnemius_medial, .soleus, .tibialis_anterior, .fibularis]
+    .adductors: [.pectineus, .adductor_longus, .adductor_brevis, .adductor_magnus,
+                 .gracilis, .sartorius],
+    .glutes: [.gluteus_maximus, .gluteus_medius, .gluteus_minimus, .tensor_fasciae_latae],
+    .hamstrings: [.semimembranosus, .semitendinosus, .biceps_femoris,
+                  .adductor_magnus, .gracilis, .popliteus],
+    .calves: [.gastrocnemius_lateral, .gastrocnemius_medial, .soleus,
+              .tibialis_anterior, .tibialis_posterior, .fibularis, .popliteus],
+    .push: [.pectoralis_major, .pectoralis_minor, .serratus_anterior, .deltoid_anterior, .deltoid_lateral, .triceps_brachii_long, .triceps_brachii_lateral, .triceps_brachii_medial, .anconeus
+    ],
+    .pull: [.latissimus_dorsi, .trapezius, .trapezius_upper, .rhomboid_major, .rhomboid_minor, .teres_major, .infraspinatus, .deltoid_posterior, .deltoid_lateral, .biceps_brachii, .brachialis, .brachioradialis, .flexor_carpi_radialis, .flexor_carpi_ulnaris, .palmaris_longus
+    ],
+    .legs: [.sartorius, .pectineus, .adductor_longus, .adductor_magnus, .adductor_brevis, .gracilis, .rectus_femoris, .vastus_lateralis, .vastus_medialis, .vastus_intermedius, .semimembranosus, .semitendinosus, .biceps_femoris, .gastrocnemius_lateral, .gastrocnemius_medial, .soleus, .tibialis_anterior, .fibularis],
+    .upper: [
+        // neck
+        .sternocleidomastoid,
+        // shoulders
+        .deltoid_anterior, .deltoid_lateral, .deltoid_posterior, .deltoids,
+        .supraspinatus, .infraspinatus, .teres_minor, .subscapularis,
+        // chest
+        .pectoralis_major, .pectoralis_minor, .serratus_anterior,
+        // back
+        .trapezius, .trapezius_upper, .latissimus_dorsi,
+        .rhomboid_major, .rhomboid_minor,
+        .teres_major, .serratus_posterior_inferior,
+        // arms
+        .biceps_brachii, .brachialis,
+        .triceps_brachii_long, .triceps_brachii_lateral, .triceps_brachii_medial, .anconeus,
+        // forearms
+        .brachioradialis, .flexor_carpi_radialis, .palmaris_longus, .flexor_carpi_ulnaris,
+        .flexor_digitorum_superficialis, .flexor_digitorum_profundus, .flexor_policis_longus,
+        .pronator_teres,
+        .extensor_carpi_radialis, .extensor_carpi_ulnaris, .extensor_digitorum,
+        .extensor_digiti_minimi, .extensor_policis,
+    ],
+    .lower: [
+        // hip flexors
+        .iliopsoas, .sartorius, .pectineus,
+        // adductors
+        .adductor_longus, .adductor_brevis, .adductor_magnus, .gracilis,
+        // glutes
+        .gluteus_maximus, .gluteus_medius, .gluteus_minimus,
+        // quads
+        .rectus_femoris, .vastus_lateralis, .vastus_medialis, .vastus_intermedius,
+        // hamstrings
+        .biceps_femoris, .semimembranosus, .semitendinosus,
+        // calves
+        .gastrocnemius_lateral, .gastrocnemius_medial, .soleus,
+        .tibialis_anterior, .tibialis_posterior, .fibularis,
+        // knee
+        .popliteus
+    ]
+]
+
+// No overlaps between groups for accurate accounting without double-counting
+// Decisions were made. Make your own if you need different choices.
+public let BodyPartUniqueGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
+    .skeletal_etc: [.hair, .head, .neck, .hands, .ankles, .knees, .feet],
+    .neck: [.sternocleidomastoid],
+    .shoulders: [.deltoid_posterior, .deltoid_lateral, .deltoid_anterior, .deltoids,
+                 .infraspinatus, .supraspinatus, .teres_minor, .subscapularis],
+    .chest: [.pectoralis_major, .pectoralis_minor, .serratus_anterior],
+    .back_upper: [.latissimus_dorsi, .trapezius, .trapezius_upper, .teres_major,
+                  .rhomboid_major, .rhomboid_minor],
+    .back_lower: [.erector_spinae, .serratus_posterior_inferior, .quadratus_lumborum],
+    .abs: [.rectus_abdominis, .obliques, .transverse_abdominis],
+    .biceps: [.biceps_brachii, .brachialis],
+    .triceps: [.triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral, .anconeus],
+    .forearms: [.brachioradialis, .flexor_carpi_radialis, .palmaris_longus,
+                .flexor_carpi_ulnaris, .flexor_digitorum_superficialis,
+                .flexor_digitorum_profundus, .flexor_policis_longus, .pronator_teres,
+                .extensor_carpi_ulnaris, .extensor_digitorum, .extensor_carpi_radialis,
+                .extensor_digiti_minimi, .extensor_policis],
+    .hip_flexors: [.iliopsoas, .tensor_fasciae_latae, .sartorius, .rectus_femoris],
+    .quads: [.vastus_lateralis, .vastus_medialis, .vastus_intermedius],
+    .adductors: [.pectineus, .adductor_longus, .adductor_brevis, .adductor_magnus, .gracilis],
+    .glutes: [.gluteus_maximus, .gluteus_medius, .gluteus_minimus],
+    .hamstrings: [.semimembranosus, .semitendinosus, .biceps_femoris, .popliteus],
+    .calves: [.gastrocnemius_lateral, .gastrocnemius_medial, .soleus,
+              .tibialis_anterior, .tibialis_posterior, .fibularis],
 ]
 
 // MARK: - Color Extension

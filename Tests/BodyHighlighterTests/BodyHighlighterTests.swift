@@ -80,7 +80,7 @@ final class BodyHighlighterTests: XCTestCase {
         XCTAssertTrue(data.matches(.biceps), "Should match biceps as it is in arms section")
         XCTAssertTrue(data.matches(.triceps_brachii_long), "Should match triceps as it is in arms section")
 
-        XCTAssertFalse(data.matches(.rectus_abdominus), "Should not match abs which is not in arms section")
+        XCTAssertFalse(data.matches(.rectus_abdominis), "Should not match abs which is not in arms section")
     }
 
     func testBodyPartDataMatchesNone() {
@@ -98,7 +98,7 @@ final class BodyHighlighterTests: XCTestCase {
 
         // Verify expected parts exist
         XCTAssertTrue(parts.contains(.pectoralis_major), "Should contain chest")
-        XCTAssertTrue(parts.contains(.rectus_abdominus), "Should contain abs")
+        XCTAssertTrue(parts.contains(.rectus_abdominis), "Should contain abs")
         XCTAssertTrue(parts.contains(.biceps), "Should contain biceps")
     }
 
@@ -115,7 +115,7 @@ final class BodyHighlighterTests: XCTestCase {
         XCTAssertFalse(parts.isEmpty, "Male back upper body data should not be empty")
 
         XCTAssertTrue(parts.contains(.trapezius), "Should contain trapezius")
-        XCTAssertTrue(parts.contains(.deltoid_rear), "Should contain deltoids")
+        XCTAssertTrue(parts.contains(.deltoid_posterior), "Should contain deltoids")
     }
 
     func testMaleBackLower() {
@@ -131,7 +131,7 @@ final class BodyHighlighterTests: XCTestCase {
         XCTAssertFalse(parts.isEmpty, "Female front upper body data should not be empty")
 
         XCTAssertTrue(parts.contains(.pectoralis_major), "Should contain chest")
-        XCTAssertTrue(parts.contains(.rectus_abdominus), "Should contain abs")
+        XCTAssertTrue(parts.contains(.rectus_abdominis), "Should contain abs")
     }
 
     func testFemaleFrontLower() {
@@ -147,7 +147,7 @@ final class BodyHighlighterTests: XCTestCase {
         XCTAssertFalse(parts.isEmpty, "Female back upper body data should not be empty")
 
         XCTAssertTrue(parts.contains(.trapezius), "Should contain trapezius")
-        XCTAssertTrue(parts.contains(.deltoid_rear), "Should contain deltoids")
+        XCTAssertTrue(parts.contains(.deltoid_posterior), "Should contain deltoids")
     }
 
     func testFemaleBackLower() {
@@ -230,7 +230,7 @@ final class BodyHighlighterTests: XCTestCase {
         // Test view with custom body part data
         let customData = [
             BodyPartData(slug: .pectoralis_major, color: .red, intensity: 2),
-            BodyPartData(slug: .rectus_abdominus, color: .blue)
+            BodyPartData(slug: .rectus_abdominis, color: .blue)
         ]
 
         let view = BodyView(data: customData, side: .anterior, gender: .man)
@@ -238,7 +238,7 @@ final class BodyHighlighterTests: XCTestCase {
     }
 
     func testBodyViewWithDisabledParts() {
-        let disabledParts: Set<BodyPartSlug> = [.pectoralis_major, .rectus_abdominus]
+        let disabledParts: Set<BodyPartSlug> = [.pectoralis_major, .rectus_abdominis]
         let view = BodyView(
             side: .anterior,
             gender: .man,

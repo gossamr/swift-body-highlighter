@@ -14,11 +14,20 @@ public protocol BodyPartStringConvertible: Sendable {
 
 extension BodyPartStringConvertible {
     public func displayName() -> String {
-        self.rawValue
+        var components = self.rawValue
             .replacingOccurrences(of: "_", with: " ")
             .split(separator: " ")
             .map { $0.capitalized }
-            .joined(separator: " ")
+
+        // Define the terms that should be wrapped in parentheses
+        let suffixesToWrap = ["Posterior", "Anterior", "Lateral", "Long", "Upper", "Lower", "Medial", "Mid"]
+
+        // Check if the last component exists and matches our list
+        if components.count > 1, let last = components.last, suffixesToWrap.contains(last) {
+            components[components.count - 1] = "(\(last))"
+        }
+
+        return components.joined(separator: " ")
     }
 }
 

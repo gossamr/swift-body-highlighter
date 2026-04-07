@@ -82,7 +82,7 @@ struct ContentView: View {
         ),
         // Direct color assignment
         BodyPartData(
-            slug: .rectus_abdominus, // Target specific muscle
+            slug: .rectus_abdominis, // Target specific muscle
             color: .red
         ),
         // Detailed styling with stroke
@@ -140,7 +140,7 @@ struct ContentView: View {
 
 The package supports granular muscle highlighting. See `BodyPartSlug` and `BodyPartGroup` for a complete list, including:
 
-- **Torso**: `rectus_abdominus`, `obliques`, `trapezius`, ...
+- **Torso**: `rectus_abdominis`, `obliques`, `trapezius`, ...
 - **Arms**: `biceps`, `brachialis`, `brachioradialis`, ...
 - **Lower Body**: `rectus_femoris`, `biceps_femoris`, `gluteus_maximus`, ...
 - **Other**: `head`, `neck`, `knees`, `hands`, `feet`, ...

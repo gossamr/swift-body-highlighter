@@ -70,8 +70,8 @@ public struct BodyData {
                 ]
             )
         ),
-//        .deltoid_front: BodyPart(
-//            slug: .deltoid_front,
+//        .deltoid_anterior: BodyPart(
+//            slug: .deltoid_anterior,
 //            paths: BodyPaths(
 //                common: [],
 //                left: [
@@ -82,8 +82,8 @@ public struct BodyData {
 //                ]
 //            )
 //        ),
-//        .deltoid_side: BodyPart(
-//            slug: .deltoid_side,
+//        .deltoid_lateral: BodyPart(
+//            slug: .deltoid_lateral,
 //            paths: BodyPaths(
 //                common: [],
 //                left: [
@@ -118,8 +118,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .biceps: BodyPart(
-            slug: .biceps,
+        .biceps_brachii: BodyPart(
+            slug: .biceps_brachii,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -178,8 +178,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .rectus_abdominus: BodyPart(
-            slug: .rectus_abdominus,
+        .rectus_abdominis: BodyPart(
+            slug: .rectus_abdominis,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -461,8 +461,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .deltoid_rear: BodyPart(
-            slug: .deltoid_rear,
+        .deltoid_posterior: BodyPart(
+            slug: .deltoid_posterior,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -847,8 +847,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .deltoid_front: BodyPart(
-            slug: .deltoid_front,
+        .deltoid_anterior: BodyPart(
+            slug: .deltoid_anterior,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -859,8 +859,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .deltoid_side: BodyPart(
-            slug: .deltoid_side,
+        .deltoid_lateral: BodyPart(
+            slug: .deltoid_lateral,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -883,8 +883,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .biceps: BodyPart(
-            slug: .biceps,
+        .biceps_brachii: BodyPart(
+            slug: .biceps_brachii,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -940,8 +940,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .rectus_abdominus: BodyPart(
-            slug: .rectus_abdominus,
+        .rectus_abdominis: BodyPart(
+            slug: .rectus_abdominis,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -1228,8 +1228,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .deltoid_rear: BodyPart(
-            slug: .deltoid_rear,
+        .deltoid_posterior: BodyPart(
+            slug: .deltoid_posterior,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -1532,26 +1532,36 @@ public struct BodyData {
 
     public static let bodyAnteriorUpper: Set<BodyPartSlug> = [
         .hair, .head, .neck, .sternocleidomastoid, .trapezius_upper,
-        .deltoid_side, .deltoid_front, .deltoids,
+        .deltoid_lateral, .deltoid_anterior, .deltoids,
         .pectoralis_major, .serratus_anterior,
-        .biceps, .brachialis,
+        .biceps_brachii, .brachialis,
         .brachioradialis, .flexor_carpi_radialis, .palmaris_longus, .pronator_teres,
-        .obliques, .rectus_abdominus, .hands
+        .obliques, .rectus_abdominis, .hands,
+
+        // not displayed:
+//        .transverse_abdominis, .pectoralis_minor, .subscapularis, .flexor_carpi_ulnaris, .flexor_digitorum_superficialis,
+//        .flexor_digitorum_profundus, .flexor_policis_longus, .extensor_digiti_minimi, .extensor_policis
     ]
 
     public static let bodyAnteriorLower: Set<BodyPartSlug> = [
         .pectineus, .adductor_longus, .sartorius, .vastus_lateralis, .rectus_femoris, .vastus_medialis,
         .knees, .popliteus,
         .tibialis_anterior, .fibularis, .gastrocnemius_medial,
-        .ankles, .feet
+        .ankles, .feet,
+
+        // not displayed:
+//        .iliopsoas, .gracilis, .adductor_brevis, .vastus_intermedius, .tibialis_posterior, .tensor_fasciae_latae
     ]
 
     public static let bodyPosteriorUpper: Set<BodyPartSlug> = [
-        .hair, .head, .trapezius_upper, .trapezius, .deltoid_rear, .teres_major, .infraspinatus,
+        .hair, .head, .trapezius_upper, .trapezius, .deltoid_posterior, .teres_major, .infraspinatus,
         .latissimus_dorsi, .triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral,
         .erector_spinae, .serratus_posterior_inferior,
         .extensor_carpi_ulnaris, .extensor_digitorum, .extensor_carpi_radialis, .anconeus,
-        .hands
+        .hands,
+
+        // not displayed:
+//        .quadratus_lumborum, .rhomboid_major, .rhomboid_minor, .supraspinatus, .teres_minor
     ]
 
     public static let bodyPosteriorLower: Set<BodyPartSlug> = [
@@ -1560,7 +1570,10 @@ public struct BodyData {
         .adductor_magnus,                                       // adductor
         .semimembranosus, .semitendinosus, .biceps_femoris,     // hamstrings
         .gastrocnemius_lateral, .gastrocnemius_medial, .soleus, // calves
-        .ankles, .feet
+        .ankles, .feet,
+
+        // not displayed:
+//        .gluteus_minimus
     ]
 
     static let borders: Dictionary<BodyGender, Dictionary<BodySide, Path>> = [

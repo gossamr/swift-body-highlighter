@@ -45,7 +45,7 @@ public struct BodyView: View {
         colors: [Color] = [Color(hex: "#0984e3"), Color(hex: "#74b9ff")],
         scale: CGFloat = 1.0,
         border: Color? = Color(hex: "#dfdfdf"),
-        disabledParts: Set<BodyPartSlug> = BodyPartGroup.skeletal_etc.slugs(),
+        disabledParts: Set<BodyPartSlug> = BodyPartGroup.skeletal_etc.slugs,
         disabledFill: Color = Color(hex: "#ebebe4"),
         hiddenParts: Set<BodyPartSlug> = [],
         defaultFill: Color = Color(hex: "#3f3f3f"),

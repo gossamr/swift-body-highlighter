@@ -8,12 +8,12 @@ import Foundation
 
 public protocol BodyPartStringConvertible: Sendable {
     var rawValue: String { get }
-    func displayName() -> String
-    func slugs() -> Set<BodyPartSlug>
+    var displayName: String { get }
+    var slugs: Set<BodyPartSlug> { get }
 }
 
 extension BodyPartStringConvertible {
-    public func displayName() -> String {
+    public var displayName: String {
         var components = self.rawValue
             .replacingOccurrences(of: "_", with: " ")
             .split(separator: " ")
@@ -115,10 +115,10 @@ public struct AnyBodyPart: RawRepresentable, Hashable, Codable, BodyPartStringCo
     }
 
     /// Returns the localized or formatted display name for the body part.
-    public func displayName() -> String {
+    public var displayName: String {
         switch representation {
-        case .group(let group): return group.displayName()
-        case .slug(let slug): return slug.displayName()
+        case .group(let group): return group.displayName
+        case .slug(let slug): return slug.displayName
         }
     }
 
@@ -126,9 +126,9 @@ public struct AnyBodyPart: RawRepresentable, Hashable, Codable, BodyPartStringCo
     ///
     /// For a `.slug` representation, this returns a set containing only itself.
     /// For a `.group` representation, this returns all slugs contained within that group.
-    public func slugs() -> Set<BodyPartSlug> {
+    public var slugs: Set<BodyPartSlug> {
         switch representation {
-        case .group(let group): return group.slugs()
+        case .group(let group): return group.slugs
         case .slug(let slug): return [slug]
         }
     }

@@ -80,7 +80,7 @@ public struct BodyPartData: Identifiable, Equatable, Sendable {
         }
 
         if let group {
-            return targetSlug.groups().contains(group)
+            return targetSlug.groups.contains(group)
         }
 
         return false
@@ -166,19 +166,25 @@ public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, Bo
          extensor_digiti_minimi, extensor_policis, // forearm rear
          tensor_fasciae_latae // hip
 
-    public func groups() -> [BodyPartGroup] {
+    public var groups: [BodyPartGroup] {
         return BodyPartGroup.allCases.filter {
-            $0.slugs().contains(self)
+            $0.slugs.contains(self)
         }
     }
 
-    public func uniqueGroups() -> [BodyPartGroup] {
-        return BodyPartGroup.uniqueGroups().filter {
-            $0.uniqueSlugs().contains(self)
+    public var uniqueGroups: [BodyPartGroup] {
+        return BodyPartGroup.uniqueGroups.filter {
+            $0.uniqueSlugs.contains(self)
         }
     }
 
-    public func section() -> (BodySide, BodySection)? {
+//    public static func testUniques() {
+//        BodyPartSlug.allCases.forEach {
+//            print($0, $0.uniqueGroups())
+//        }
+//    }
+
+    public var section: (BodySide, BodySection)? {
         if BodyData.bodyAnteriorUpper.contains(self) {
             return (.anterior, .upper)
         } else if BodyData.bodyAnteriorLower.contains(self) {
@@ -192,7 +198,7 @@ public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, Bo
         }
     }
 
-    public func sameSection() -> Set<BodyPartSlug> {
+    public var sameSection: Set<BodyPartSlug> {
         if BodyData.bodyAnteriorUpper.contains(self) {
             return BodyData.bodyAnteriorUpper
         } else if BodyData.bodyAnteriorLower.contains(self) {
@@ -206,14 +212,14 @@ public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, Bo
         }
     }
 
-    public func slugs() -> Set<BodyPartSlug> { [self] }
+    public var slugs: Set<BodyPartSlug> { [self] }
 }
 
 public enum BodyPartGroup: String, Sendable, Codable, CaseIterable, Equatable, BodyPartStringConvertible {
     case skeletal_etc = "skeletal+"
 
     // both
-    case neck, trapezius = "traps", deltoids = "delts", arms, triceps, forearms, adductors, calves
+    case neck, trapezius = "traps", deltoids = "delts", triceps, forearms, adductors, calves
     case core, shoulders // workout split and in the highlight body anterior and posterior
 
     // anterior-only
@@ -228,20 +234,20 @@ public enum BodyPartGroup: String, Sendable, Codable, CaseIterable, Equatable, B
     // workout splits
     case upper, lower, push, pull, legs
 
-    public func slugs() -> Set<BodyPartSlug> {
+    public var slugs: Set<BodyPartSlug> {
         return BodyPartGroups[self] ?? []
     }
 
-    public func uniqueSlugs() -> Set<BodyPartSlug> {
+    public var uniqueSlugs: Set<BodyPartSlug> {
         return BodyPartUniqueGroups[self] ?? []
     }
 
-    public static func muscles() -> Set<BodyPartSlug> {
+    public static var muscles: Set<BodyPartSlug> {
         return Set(BodyPartSlug.allCases).subtracting(BodyPartGroups[BodyPartGroup.skeletal_etc]!)
     }
 
     // non-overlapping muscle groups
-    public static func uniqueGroups() -> Set<BodyPartGroup> {
+    public static var uniqueGroups: Set<BodyPartGroup> {
         return Set(BodyPartUniqueGroups.keys)
     }
 }

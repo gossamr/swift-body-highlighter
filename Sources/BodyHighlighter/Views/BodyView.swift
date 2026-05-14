@@ -24,6 +24,7 @@ public struct BodyView: View {
     private let defaultStrokeWidth: CGFloat
     private let enableZoom: Bool
     private let enablePan: Bool
+    private let sideConvention: SideConvention
     private let onBodyPartPress: ((BodyPartSlug, LateralSide?) -> Void)?
 
     // MARK: - State
@@ -53,6 +54,7 @@ public struct BodyView: View {
         defaultStrokeWidth: CGFloat = 0,
         enableZoom: Bool = false,
         enablePan: Bool = false,
+        sideConvention: SideConvention = .screen,
         onBodyPartPress: ((BodyPartSlug, LateralSide?) -> Void)? = nil
     ) {
         self.data = data
@@ -70,6 +72,7 @@ public struct BodyView: View {
         self.defaultStrokeWidth = defaultStrokeWidth
         self.enableZoom = enableZoom
         self.enablePan = enablePan
+        self.sideConvention = sideConvention
         self.onBodyPartPress = onBodyPartPress
 
         _interactiveScale = State(initialValue: scale)
@@ -150,26 +153,28 @@ public struct BodyView: View {
                     }
 
                     // Draw left paths
-                    let leftData = getUserData(for: bodyPart.slug, side: .left) ?? commonData
+                    let leftSide = resolvedSide(forScreen: .left)
+                    let leftData = getUserData(for: bodyPart.slug, side: leftSide) ?? commonData
                     for path in bodyPart.paths.left {
                         drawPath(
                             context: &context,
                             path: path,
                             bodyPart: bodyPart,
                             userData: leftData,
-                            side: .left
+                            side: leftSide
                         )
                     }
 
                     // Draw right paths
-                    let rightData = getUserData(for: bodyPart.slug, side: .right) ?? commonData
+                    let rightSide = resolvedSide(forScreen: .right)
+                    let rightData = getUserData(for: bodyPart.slug, side: rightSide) ?? commonData
                     for path in bodyPart.paths.right {
                         drawPath(
                             context: &context,
                             path: path,
                             bodyPart: bodyPart,
                             userData: rightData,
-                            side: .right
+                            side: rightSide
                         )
                     }
                 }
@@ -237,7 +242,7 @@ public struct BodyView: View {
                 // Check Left Paths
                 for path in bodyPart.paths.left {
                     if hitTest(point: svgPoint, path: path) {
-                        onBodyPartPress(bodyPart.slug, .left)
+                        onBodyPartPress(bodyPart.slug, resolvedSide(forScreen: .left))
                         return
                     }
                 }
@@ -245,7 +250,7 @@ public struct BodyView: View {
                 // Check Right Paths
                 for path in bodyPart.paths.right {
                     if hitTest(point: svgPoint, path: path) {
-                        onBodyPartPress(bodyPart.slug, .right)
+                        onBodyPartPress(bodyPart.slug, resolvedSide(forScreen: .right))
                         return
                     }
                 }
@@ -365,6 +370,12 @@ public struct BodyView: View {
 
     private func getUserData(for slug: BodyPartSlug, side: LateralSide? = nil) -> BodyPartData? {
         data.first { $0.matches(slug, side: side) }
+    }
+
+    /// Translates a screen-side path bucket into the externally-facing `LateralSide` for the
+    /// current view's `sideConvention`.
+    private func resolvedSide(forScreen screenSide: LateralSide) -> LateralSide {
+        sideConvention.resolveBodySide(screenSide, in: side)
     }
 
     private func drawPath(

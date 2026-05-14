@@ -71,6 +71,36 @@ public struct BodyPartData: Identifiable, Equatable, Sendable {
         self.override = override
     }
 
+    /// Convenience init that pulls region and side from a single `AnyBodyPart` value.
+    ///
+    /// The resulting `BodyPartData` is field-for-field equivalent — including `id` byte-equality —
+    /// to constructing via `init(slug:side:…)` / `init(group:side:…)` with the corresponding
+    /// parts. There is intentionally no `side:` override: if a different side is wanted, construct
+    /// a different `AnyBodyPart`.
+    public init(
+        part: AnyBodyPart,
+        intensity: Int? = nil,
+        color: Color? = nil,
+        style: BodyPartStyle? = nil,
+        override: Bool = false
+    ) {
+        switch part.representation {
+        case .slug(let slug):
+            self.id = slug.rawValue + (part.side?.rawValue ?? "")
+            self.slug = slug
+            self.group = nil
+        case .group(let group):
+            self.id = group.rawValue + (part.side?.rawValue ?? "")
+            self.slug = nil
+            self.group = group
+        }
+        self.style = style
+        self.color = color
+        self.intensity = intensity
+        self.side = part.side
+        self.override = override
+    }
+
     public func matches(_ targetSlug: BodyPartSlug, side targetSide: LateralSide? = nil) -> Bool {
         let sideMatches = side == nil || side == targetSide
         guard sideMatches else { return false }
@@ -110,9 +140,31 @@ public enum BodyGender: String, Sendable, CaseIterable, Equatable, Codable {
     case woman
 }
 
-public enum LateralSide: String, Sendable, CaseIterable, Equatable {
+public enum LateralSide: String, Sendable, Codable, CaseIterable, Equatable {
     case left
     case right
+}
+
+/// Controls how `BodyView` interprets `LateralSide` for tap callbacks and side-aware path lookups.
+public enum SideConvention: String, Sendable, CaseIterable, Equatable {
+    /// `LateralSide.left` / `.right` refer to the on-screen side of the SVG path. Default —
+    /// preserves the historical behavior of `BodyView`.
+    case screen
+    /// `LateralSide.left` / `.right` refer to the subject's anatomical side. `BodyView` flips
+    /// screen↔body for anterior views; posterior views are unchanged.
+    case body
+
+    /// Maps a screen-side path bucket (where `LateralSide.left` = lower-x in SVG space) to
+    /// the externally-facing side under this convention. Under `.screen` the value is
+    /// unchanged; under `.body` anterior views flip screen↔body because the subject's
+    /// anatomical-left appears on screen-right when viewed face-on.
+    public func resolveBodySide(_ screenSide: LateralSide, in view: BodySide) -> LateralSide {
+        guard self == .body else { return screenSide }
+        switch view {
+        case .anterior: return screenSide == .left ? .right : .left
+        case .posterior: return screenSide
+        }
+    }
 }
 
 public enum BodySection: String, Sendable, CaseIterable, Equatable {
@@ -123,7 +175,7 @@ public enum BodySection: String, Sendable, CaseIterable, Equatable {
 
 public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, BodyPartStringConvertible {
     // skeletal & other non-muscles
-    case hair, head, neck, hands, ankles, knees, feet
+    case hair, head, neck, elbows, hands, ankles, knees, feet
 
     // anterior and posterior
     case trapezius_upper, vastus_lateralis
@@ -143,7 +195,7 @@ public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, Bo
     case deltoid_posterior,
          infraspinatus, teres_major, trapezius, // upper back
          triceps_brachii_long, triceps_brachii_lateral, triceps_brachii_medial, // triceps
-         anconeus, extensor_carpi_ulnaris, extensor_digitorum, extensor_carpi_radialis, // forearms
+         extensor_carpi_ulnaris, extensor_digitorum, extensor_carpi_radialis, // forearms
          latissimus_dorsi, erector_spinae, serratus_posterior_inferior, // lower back
          gluteus_maximus, gluteus_medius, // glutes
          adductor_magnus, // adductor
@@ -159,11 +211,13 @@ public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, Bo
     // unmapped
     case pectoralis_minor, quadratus_lumborum, iliopsoas,
          transverse_abdominis, // inner core
+         splenius_capitis, splenius_cervicis, scalenes, // neck (posterior + lateral)
          rhomboid_major, rhomboid_minor,  // upper back
          supraspinatus, teres_minor, subscapularis, // rotator cuff
          gracilis, adductor_brevis, vastus_intermedius, gluteus_minimus, tibialis_posterior, // legs
-         flexor_carpi_ulnaris, flexor_digitorum_superficialis, flexor_digitorum_profundus, flexor_policis_longus, // forearm front
-         extensor_digiti_minimi, extensor_policis, // forearm rear
+         flexor_carpi_ulnaris, flexor_digitorum_superficialis, flexor_digitorum_profundus, flexor_pollicis_longus, // forearm front
+         anconeus,
+         extensor_digiti_minimi, extensor_pollicis, // forearm rear
          tensor_fasciae_latae // hip
 
     public var groups: [BodyPartGroup] {
@@ -177,12 +231,6 @@ public enum BodyPartSlug: String, Sendable, Codable, CaseIterable, Equatable, Bo
             $0.uniqueSlugs.contains(self)
         }
     }
-
-//    public static func testUniques() {
-//        BodyPartSlug.allCases.forEach {
-//            print($0, $0.uniqueGroups())
-//        }
-//    }
 
     public var section: (BodySide, BodySection)? {
         if BodyData.bodyAnteriorUpper.contains(self) {
@@ -254,8 +302,8 @@ public enum BodyPartGroup: String, Sendable, Codable, CaseIterable, Equatable, B
 
 // Functional anatomically correct mappings
 public let BodyPartGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
-    .skeletal_etc: [.hair, .head, .neck, .hands, .ankles, .knees, .feet],
-    .neck: [.sternocleidomastoid, .trapezius_upper],
+    .skeletal_etc: [.hair, .head, .neck, .elbows, .hands, .ankles, .knees, .feet],
+    .neck: [.sternocleidomastoid, .splenius_capitis, .splenius_cervicis, .scalenes, .trapezius_upper],
     .shoulders: [.deltoid_posterior, .deltoid_lateral, .deltoid_anterior, .deltoids,
                  .infraspinatus, .supraspinatus, .teres_minor, .subscapularis, .teres_major],
     .chest: [.pectoralis_major, .pectoralis_minor, .serratus_anterior],
@@ -275,9 +323,9 @@ public let BodyPartGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
     .triceps: [.triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral, .anconeus],
     .forearms: [.brachioradialis, .flexor_carpi_radialis, .palmaris_longus,
                 .flexor_carpi_ulnaris, .flexor_digitorum_superficialis,
-                .flexor_digitorum_profundus, .flexor_policis_longus, .pronator_teres,
+                .flexor_digitorum_profundus, .flexor_pollicis_longus, .pronator_teres,
                 .extensor_carpi_ulnaris, .extensor_digitorum, .extensor_carpi_radialis,
-                .extensor_digiti_minimi, .extensor_policis, .anconeus],
+                .extensor_digiti_minimi, .extensor_pollicis, .anconeus],
     .hip_flexors: [.iliopsoas, .tensor_fasciae_latae, .sartorius,
                    .rectus_femoris, .pectineus],
     .quads: [.rectus_femoris, .vastus_lateralis, .vastus_medialis, .vastus_intermedius],
@@ -295,7 +343,7 @@ public let BodyPartGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
     .legs: [.sartorius, .pectineus, .adductor_longus, .adductor_magnus, .adductor_brevis, .gracilis, .rectus_femoris, .vastus_lateralis, .vastus_medialis, .vastus_intermedius, .semimembranosus, .semitendinosus, .biceps_femoris, .gastrocnemius_lateral, .gastrocnemius_medial, .soleus, .tibialis_anterior, .fibularis],
     .upper: [
         // neck
-        .sternocleidomastoid,
+        .sternocleidomastoid, .splenius_capitis, .splenius_cervicis, .scalenes,
         // shoulders
         .deltoid_anterior, .deltoid_lateral, .deltoid_posterior, .deltoids,
         .supraspinatus, .infraspinatus, .teres_minor, .subscapularis,
@@ -310,10 +358,10 @@ public let BodyPartGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
         .triceps_brachii_long, .triceps_brachii_lateral, .triceps_brachii_medial, .anconeus,
         // forearms
         .brachioradialis, .flexor_carpi_radialis, .palmaris_longus, .flexor_carpi_ulnaris,
-        .flexor_digitorum_superficialis, .flexor_digitorum_profundus, .flexor_policis_longus,
+        .flexor_digitorum_superficialis, .flexor_digitorum_profundus, .flexor_pollicis_longus,
         .pronator_teres,
         .extensor_carpi_radialis, .extensor_carpi_ulnaris, .extensor_digitorum,
-        .extensor_digiti_minimi, .extensor_policis,
+        .extensor_digiti_minimi, .extensor_pollicis,
     ],
     .lower: [
         // hip flexors
@@ -337,8 +385,8 @@ public let BodyPartGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
 // No overlaps between groups for accurate accounting without double-counting
 // Decisions were made. Make your own if you need different choices.
 public let BodyPartUniqueGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
-    .skeletal_etc: [.hair, .head, .neck, .hands, .ankles, .knees, .feet],
-    .neck: [.sternocleidomastoid],
+    .skeletal_etc: [.hair, .head, .neck, .elbows, .hands, .ankles, .knees, .feet],
+    .neck: [.sternocleidomastoid, .splenius_capitis, .splenius_cervicis, .scalenes],
     .shoulders: [.deltoid_posterior, .deltoid_lateral, .deltoid_anterior, .deltoids,
                  .infraspinatus, .supraspinatus, .teres_minor, .subscapularis],
     .chest: [.pectoralis_major, .pectoralis_minor, .serratus_anterior],
@@ -350,9 +398,9 @@ public let BodyPartUniqueGroups: [BodyPartGroup: Set<BodyPartSlug>] = [
     .triceps: [.triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral, .anconeus],
     .forearms: [.brachioradialis, .flexor_carpi_radialis, .palmaris_longus,
                 .flexor_carpi_ulnaris, .flexor_digitorum_superficialis,
-                .flexor_digitorum_profundus, .flexor_policis_longus, .pronator_teres,
+                .flexor_digitorum_profundus, .flexor_pollicis_longus, .pronator_teres,
                 .extensor_carpi_ulnaris, .extensor_digitorum, .extensor_carpi_radialis,
-                .extensor_digiti_minimi, .extensor_policis],
+                .extensor_digiti_minimi, .extensor_pollicis],
     .hip_flexors: [.iliopsoas, .tensor_fasciae_latae, .sartorius, .rectus_femoris],
     .quads: [.vastus_lateralis, .vastus_medialis, .vastus_intermedius],
     .adductors: [.pectineus, .adductor_longus, .adductor_brevis, .adductor_magnus, .gracilis],

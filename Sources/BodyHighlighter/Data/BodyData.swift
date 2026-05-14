@@ -605,8 +605,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .anconeus: BodyPart(
-            slug: .anconeus,
+        .elbows: BodyPart(
+            slug: .elbows,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -1360,8 +1360,8 @@ public struct BodyData {
                 ]
             )
         ),
-        .anconeus: BodyPart(
-            slug: .anconeus,
+        .elbows: BodyPart(
+            slug: .elbows,
             paths: BodyPaths(
                 common: [],
                 left: [
@@ -1540,7 +1540,7 @@ public struct BodyData {
 
         // not displayed:
 //        .transverse_abdominis, .pectoralis_minor, .subscapularis, .flexor_carpi_ulnaris, .flexor_digitorum_superficialis,
-//        .flexor_digitorum_profundus, .flexor_policis_longus, .extensor_digiti_minimi, .extensor_policis
+//        .flexor_digitorum_profundus, .flexor_pollicis_longus, .extensor_digiti_minimi, .extensor_pollicis
     ]
 
     public static let bodyAnteriorLower: Set<BodyPartSlug> = [
@@ -1557,11 +1557,12 @@ public struct BodyData {
         .hair, .head, .trapezius_upper, .trapezius, .deltoid_posterior, .teres_major, .infraspinatus,
         .latissimus_dorsi, .triceps_brachii_long, .triceps_brachii_medial, .triceps_brachii_lateral,
         .erector_spinae, .serratus_posterior_inferior,
-        .extensor_carpi_ulnaris, .extensor_digitorum, .extensor_carpi_radialis, .anconeus,
+        .extensor_carpi_ulnaris, .extensor_digitorum, .extensor_carpi_radialis, .elbows,
         .hands,
 
         // not displayed:
-//        .quadratus_lumborum, .rhomboid_major, .rhomboid_minor, .supraspinatus, .teres_minor
+//        .quadratus_lumborum, .rhomboid_major, .rhomboid_minor, .supraspinatus, .teres_minor,
+//        .splenius_capitis, .splenius_cervicis, .scalenes, .anconeus
     ]
 
     public static let bodyPosteriorLower: Set<BodyPartSlug> = [

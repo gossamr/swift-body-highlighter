@@ -194,6 +194,16 @@ public struct AnyBodyPart: RawRepresentable, Hashable, Codable, BodyPartStringCo
         }
     }
 
+    /// Unique slugs — parallel to `slugs` but uses `BodyPartGroup.uniqueSlugs`
+    /// for the group case, so a slug with overlapping group memberships only
+    /// appears under its unique owner.
+    public var uniqueSlugs: Set<BodyPartSlug> {
+        switch representation {
+        case .group(let group): return group.uniqueSlugs
+        case .slug(let slug): return [slug]
+        }
+    }
+
     // MARK: - Utilities
 
     /// Attempts to resolve a raw string into a known body part group or slug, with optional side
